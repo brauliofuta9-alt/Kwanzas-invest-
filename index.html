@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kwanzas Invest — Demonstração</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#07111f;color:#f5f7fb}
+header{padding:20px;background:#0d1b2e;border-bottom:1px solid #263750}
+.logo{font-size:23px;font-weight:bold;color:#54e0ad}
+.logo span{color:white}
+main{max-width:960px;margin:auto;padding:20px}
+.panel{background:#102139;border:1px solid #263b55;border-radius:16px;padding:20px;margin:16px 0}
+h1{font-size:30px;margin-bottom:10px}
+h2{font-size:20px}
+p{color:#bdc9d8;line-height:1.5}
+input,button{width:100%;padding:13px;border-radius:9px;font-size:16px;margin:7px 0}
+input{background:#081526;border:1px solid #344861;color:white}
+button{background:#54e0ad;color:#061a15;border:0;font-weight:bold;cursor:pointer}
+button.secondary{background:#263b55;color:white}
+.notice{background:#3b2e15;color:#ffe5a4;padding:13px;border-radius:10px;font-size:13px;line-height:1.5}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.plan{background:#0a192b;border:1px solid #344861;border-radius:12px;padding:16px}
+.amount{font-size:23px;font-weight:bold;color:#54e0ad}
+.small{font-size:12px;color:#aab9ca}
+.hidden{display:none}
+.item{padding:12px 0;border-bottom:1px solid #263750}
+footer{text-align:center;padding:25px;color:#91a2b7;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Kwanzas <span>Invest</span></div>
+  <div class="small">PLATAFORMA DE DEMONSTRAÇÃO</div>
+</header>
+
+<main>
+  <section id="welcome" class="panel">
+    <h1>Organiza os teus objetivos financeiros.</h1>
+    <p>Conhece os planos e experimenta o funcionamento da plataforma numa demonstração.</p>
+    <div class="notice">Esta é apenas uma simulação. Os valores apresentados não representam lucros reais nem garantidos. Não são aceites depósitos ou levantamentos reais.</div>
+    <h2>Entrar na demonstração</h2>
+    <input id="username" placeholder="O teu nome para a demonstração" maxlength="40">
+    <button onclick="enter()">Entrar</button>
+  </section>
+
+  <section id="dashboard" class="hidden">
+    <div class="panel">
+      <p>Bem-vindo, <strong id="displayName"></strong></p>
+      <h1>O teu painel</h1>
+      <p>Pedidos de simulação: <strong id="count">0</strong></p>
+      <button class="secondary" onclick="logout()">Terminar sessão</button>
+    </div>
+
+    <h2>Planos de simulação</h2>
+    <p class="small">Prazo ilustrativo: 25 dias. Os resultados são exemplos matemáticos, não previsões financeiras.</p>
+    <div id="plans" class="grid"></div>
+
+    <div class="panel">
+      <h2>Histórico de simulações</h2>
+      <div id="history">Ainda não tens simulações.</div>
+    </div>
+  </section>
+</main>
+
+<footer>Kwanzas Invest · Versão de demonstração · Sem operações financeiras reais</footer>
+
+<script>
+const plans = [
+  {principal:6000, example:90000},
+  {principal:10000, example:150000},
+  {principal:25000, example:375000},
+  {principal:50000, example:750000},
+  {principal:100000, example:1500000}
+];
+
+let currentName = "";
+
+function money(n){
+  return new Intl.NumberFormat("pt-PT").format(n) + " Kz";
+}
+
+function enter(){
+  const name = document.getElementById("username").value.trim();
+  if(!name){
+    alert("Escreve o teu nome para continuar.");
+    return;
+  }
+  currentName = name;
+  document.getElementById("displayName").textContent = name;
+  document.getElementById("welcome").classList.add("hidden");
+  document.getElementById("dashboard").classList.remove("hidden");
+  render();
+}
+
+function logout(){
+  currentName = "";
+  document.getElementById("username").value = "";
+  document.getElementById("dashboard").classList.add("hidden");
+  document.getElementById("welcome").classList.remove("hidden");
+}
+
+function getHistory(){
+  try {
+    return JSON.parse(sessionStorage.getItem("kwanzasDemoHistory") || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function requestSimulation(index){
+  const plan = plans[index];
+  const records = getHistory();
+  records.unshift({
+    principal: plan.principal,
+    example: plan.example,
+    date: new Date().toLocaleString("pt-PT"),
+    status: "Simulação criada"
+  });
+  sessionStorage.setItem("kwanzasDemoHistory", JSON.stringify(records));
+  alert("Simulação criada. Nenhum dinheiro foi depositado e nenhum lucro foi pago.");
+  render();
+}
+
+function render(){
+  document.getElementById("plans").innerHTML = plans.map((p,i)=>`
+    <article class="plan">
+      <p class="small">PLANO ${i+1}</p>
+      <h2>${money(p.principal)}</h2>
+      <p>Prazo ilustrativo: 25 dias</p>
+      <p class="small">Valor final hipotético, sem garantia:</p>
+      <div class="amount">${money(p.example)}</div>
+      <button onclick="requestSimulation(${i})">Experimentar simulação</button>
+    </article>
+  `).join("");
+
+  const records = getHistory();
+  document.getElementById("count").textContent = records.length;
+  document.getElementById("history").innerHTML = records.length
+    ? records.map(r=>`
+      <div class="item">
+        <strong>${money(r.principal)}</strong>
+        <p>Exemplo hipotético: ${money(r.example)}</p>
+        <p class="small">${r.date} · ${r.status}</p>
+      </div>
+    `).join("")
+    : "Ainda não tens simulações.";
+}
+</script>
+</body>
+</html>
